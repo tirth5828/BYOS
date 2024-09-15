@@ -178,8 +178,7 @@ elif st.session_state.story_started:
 
 # add button to save the story 
 if st.button("Save Story"):
-    # convert it into a pdf story book with both text and images 
-    pass
+    save_story_as_pdf()
 
 # Optionally, you can add a condition to end the story if an ending is reached
 if st.session_state.story_parts and "The End" in st.session_state.story_parts[-1]:
