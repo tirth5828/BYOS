@@ -89,7 +89,6 @@ def clean_text(text):
     
 def generate_image(story_text):
     response = requests.post(st.secrets["lemmebuild_url"], json={'story': story_text })
-    print(st.secrets["lemmebuild_url"])
     print(response)
     print(response.status_code)
     print(response.json())
@@ -142,7 +141,7 @@ if not st.session_state.story_started:
         st.session_state.conversation_history.append({"role": "user", "content": f"I want to create a {story_type} story."})
         st.session_state.story_started = True
         generate_story_response()
-        st.experimental_rerun()
+        st.rerun()
 
 # Display the story parts with images
 for idx, part in enumerate(st.session_state.story_parts):
@@ -161,7 +160,7 @@ if st.session_state.options:
         if st.button(option):
             st.session_state.conversation_history.append({"role": "user", "content": f"I choose option {i+1}."})
             generate_story_response()
-            st.experimental_rerun()
+            st.rerun()
 elif st.session_state.story_started:
     st.write("No options available.")
 
