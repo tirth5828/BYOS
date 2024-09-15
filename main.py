@@ -2,22 +2,13 @@ import openai
 import streamlit as st
 import requests
 from fpdf import FPDF
-import requests
 from io import BytesIO
 from PIL import Image
 import base64
-import streamlit as st
-import requests
-from io import BytesIO
-from fpdf import FPDF
-from PIL import Image
 import tempfile
-import streamlit as st
-import requests
-from io import BytesIO
-from fpdf import FPDF
-from PIL import Image
-import tempfile
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import utils
+from reportlab.pdfgen import canvas
 
 
 
@@ -43,65 +34,72 @@ if 'images' not in st.session_state:
     st.session_state.images = []
     
 
-
 def save_story_as_pdf():
-    # Create a PDF instance
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    # Create a byte stream buffer for the PDF
+    pdf_buffer = BytesIO()
+    
+    # Create a canvas for the PDF
+    pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
+    width, height = letter
 
-    # Add title page
-    pdf.add_page()
-    pdf.set_font("Arial", 'B', 24)
-    pdf.cell(200, 10, txt="Your Interactive Story", ln=True, align='C')
-    pdf.ln(10)
+    # Add a title
+    pdf.setFont("Helvetica-Bold", 24)
+    pdf.drawCentredString(width / 2, height - 50, "Your Interactive Story")
+    pdf.setFont("Helvetica", 12)
+    y_position = height - 100
 
     # Loop through each part of the story
     for idx, part in enumerate(st.session_state.story_parts):
-        pdf.set_font("Arial", size=12)
-        pdf.multi_cell(0, 10, part)  # Add the text part of the story
-        
+        # Add text
+        text_lines = pdf.beginText(50, y_position)
+        text_lines.textLines(part)
+        pdf.drawText(text_lines)
+        y_position -= len(part.split("\n")) * 14 + 20  # Move position down
+
         # Add corresponding image if it exists
         if idx < len(st.session_state.images):
             image_url = st.session_state.images[idx]
             if image_url:
                 try:
-                    # Fetch the image from the URL
+                    # Fetch and load the image from the URL
                     response = requests.get(image_url)
                     if response.status_code == 200:
                         image = Image.open(BytesIO(response.content))
 
                         # Resize image if necessary (adjust width to fit PDF)
-                        image_width = 100  # Set image width
-                        aspect_ratio = image.size[1] / image.size[0]  # Calculate aspect ratio
+                        image_width = 300  # Set image width
+                        aspect_ratio = image.size[1] / image.size[0]
                         image_height = aspect_ratio * image_width
 
-                        # Save image to a temporary file
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
-                            image.save(tmp_file, format="PNG")
-                            tmp_file_path = tmp_file.name
+                        # Resize the image using ReportLab's utility function
+                        image_path = BytesIO()
+                        image.save(image_path, format="PNG")
+                        image_path.seek(0)
 
-                        # Add the image to the PDF using the temporary file path
-                        pdf.image(tmp_file_path, x=None, y=None, w=image_width, h=image_height)
+                        # Ensure the image fits within the PDF
+                        if y_position - image_height < 50:
+                            pdf.showPage()
+                            y_position = height - 50
 
+                        pdf.drawImage(image_path, 50, y_position - image_height, width=image_width, height=image_height)
+                        y_position -= image_height + 20
                 except Exception as e:
                     st.error(f"Failed to add image to PDF: {e}")
 
-        pdf.ln(10)  # Add space after each part of the story
+    # Save and close the PDF
+    pdf.showPage()
+    pdf.save()
 
-    # Output the PDF to a byte stream
-    pdf_output = BytesIO()
-    pdf.output(pdf_output, 'F')
-    pdf_output.seek(0)  # Ensure the stream's position is at the start
+    # Get the PDF data from the byte stream
+    pdf_buffer.seek(0)
 
     # Serve the PDF for download
     st.download_button(
         label="Download Story as PDF",
-        data=pdf_output.getvalue(),
+        data=pdf_buffer,
         file_name="interactive_story.pdf",
         mime="application/pdf"
     )
-
-
 
     
 def clean_text(text):
