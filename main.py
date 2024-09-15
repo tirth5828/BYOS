@@ -6,6 +6,12 @@ import requests
 from io import BytesIO
 from PIL import Image
 import base64
+import streamlit as st
+import requests
+from io import BytesIO
+from fpdf import FPDF
+from PIL import Image
+import tempfile
 
 
 
@@ -29,11 +35,13 @@ if 'options' not in st.session_state:
 if 'images' not in st.session_state:
     st.session_state.images = []
     
+
+
 def save_story_as_pdf():
     # Create a PDF instance
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
-    
+
     # Add title page
     pdf.add_page()
     pdf.set_font("Arial", 'B', 24)
@@ -52,28 +60,31 @@ def save_story_as_pdf():
                 try:
                     # Fetch the image from the URL
                     response = requests.get(image_url)
-                    image = Image.open(BytesIO(response.content))
-                    
-                    # Resize image if necessary (adjust width to fit PDF)
-                    image_width = 100  # Set image width
-                    aspect_ratio = image.size[1] / image.size[0]  # Calculate aspect ratio
-                    image_height = aspect_ratio * image_width
-                    
-                    # Convert the image to a format that FPDF can use (JPEG or PNG in memory)
-                    img_buffer = BytesIO()
-                    image.save(img_buffer, format="PNG")  # Save image to buffer
-                    img_buffer.seek(0)  # Go back to the beginning of the buffer
+                    if response.status_code == 200:
+                        image = Image.open(BytesIO(response.content))
 
-                    # Add the image to the PDF using the in-memory image
-                    pdf.image(img_buffer, x=None, y=None, w=image_width, h=image_height)
+                        # Resize image if necessary (adjust width to fit PDF)
+                        image_width = 100  # Set image width
+                        aspect_ratio = image.size[1] / image.size[0]  # Calculate aspect ratio
+                        image_height = aspect_ratio * image_width
+
+                        # Save image to a temporary file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                            image.save(tmp_file, format="PNG")
+                            tmp_file_path = tmp_file.name
+
+                        # Add the image to the PDF from the temp file
+                        pdf.image(tmp_file_path, x=None, y=None, w=image_width, h=image_height)
+
                 except Exception as e:
-                    print(f"Failed to add image to PDF: {e}")
-                    
+                    st.error(f"Failed to add image to PDF: {e}")
+
         pdf.ln(10)  # Add space after each part of the story
 
     # Output the PDF to a byte stream
     pdf_output = BytesIO()
     pdf.output(pdf_output, 'F')
+    pdf_output.seek(0)  # Ensure the stream's position is at the start
 
     # Serve the PDF for download
     st.download_button(
@@ -81,7 +92,9 @@ def save_story_as_pdf():
         data=pdf_output.getvalue(),
         file_name="interactive_story.pdf",
         mime="application/pdf"
-    ) 
+    )
+
+
     
 def clean_text(text):
     output = ""
