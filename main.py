@@ -88,9 +88,10 @@ def clean_text(text):
     for line in text.split('\n'):
         if not line.startswith(('1.', '2.', '3.', '4.' , 'Options:')):
             output += line + '\n'
+    return output
     
 def generate_image(story_text):
-    response = requests.post(st.secrets["lemmebuild_url"], json={'story': story_text })
+    response = requests.post(st.secrets["lemmebuild_url"], json={"story": story_text })
     print(response)
     print(response.status_code)
     print(response.json())
