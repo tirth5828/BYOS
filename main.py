@@ -12,6 +12,13 @@ from io import BytesIO
 from fpdf import FPDF
 from PIL import Image
 import tempfile
+import streamlit as st
+import requests
+from io import BytesIO
+from fpdf import FPDF
+from PIL import Image
+import tempfile
+
 
 
 
@@ -73,7 +80,7 @@ def save_story_as_pdf():
                             image.save(tmp_file, format="PNG")
                             tmp_file_path = tmp_file.name
 
-                        # Add the image to the PDF from the temp file
+                        # Add the image to the PDF using the temporary file path
                         pdf.image(tmp_file_path, x=None, y=None, w=image_width, h=image_height)
 
                 except Exception as e:
@@ -93,6 +100,7 @@ def save_story_as_pdf():
         file_name="interactive_story.pdf",
         mime="application/pdf"
     )
+
 
 
     
