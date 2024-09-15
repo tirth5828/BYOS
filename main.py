@@ -18,7 +18,7 @@ st.title("Create Your Own Interactive Story")
 # Global variables to store conversation history and story progress
 if 'conversation_history' not in st.session_state:
     st.session_state.conversation_history = [
-        {"role": "system", "content": "You are a Indian story writer that helps users create interactive stories. You will create 2 - 3 paragraphs for the story introduction and then provide 3 - 4 options for the user to choose from. Based on the user's choice, you will continue the story with more 3 - 4 paras and with a new set of options. Let's start creating a story together!"}
+        {"role": "system", "content": "You are a Indian story writer that helps users create interactive stories. You will create 2 - 3 paragraphs for the story introduction and then provide 3 - 4 options for the user to choose from. Based on the user's choice, you will continue the story with more 3 - 4 paras and with a new set of options. Let's start creating a story together!. Make options as 1. <option> \n\n 2. <option> \n and so on"}
     ]
 if 'story_started' not in st.session_state:
     st.session_state.story_started = False
