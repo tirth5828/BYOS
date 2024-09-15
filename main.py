@@ -92,7 +92,14 @@ def generate_image(story_text):
     print(response)
     print(response.status_code)
     print(response.json())
-    image_url = response.json()['foo']
+    try:
+        image_url = response.json()['foo']
+    except:
+        try:
+            base64_image = response.json()['taa']
+            image_url = base64_image
+        except:
+            image_url = None
     st.session_state.images.append(image_url)
 
         
