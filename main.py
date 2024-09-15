@@ -32,8 +32,8 @@ if 'options' not in st.session_state:
     st.session_state.options = []
 if 'images' not in st.session_state:
     st.session_state.images = []
-    
 
+# Function to save the story as a PDF
 def save_story_as_pdf():
     # Create a byte stream buffer for the PDF
     pdf_buffer = BytesIO()
@@ -71,17 +71,18 @@ def save_story_as_pdf():
                         aspect_ratio = image.size[1] / image.size[0]
                         image_height = aspect_ratio * image_width
 
-                        # Resize the image using ReportLab's utility function
-                        image_path = BytesIO()
-                        image.save(image_path, format="PNG")
-                        image_path.seek(0)
+                        # Save image to BytesIO object
+                        image_stream = BytesIO()
+                        image.save(image_stream, format="PNG")
+                        image_stream.seek(0)
 
                         # Ensure the image fits within the PDF
                         if y_position - image_height < 50:
                             pdf.showPage()
                             y_position = height - 50
 
-                        pdf.drawImage(image_path, 50, y_position - image_height, width=image_width, height=image_height)
+                        # Draw the image from the BytesIO stream
+                        pdf.drawImage(image_stream, 50, y_position - image_height, width=image_width, height=image_height)
                         y_position -= image_height + 20
                 except Exception as e:
                     st.error(f"Failed to add image to PDF: {e}")
@@ -100,7 +101,6 @@ def save_story_as_pdf():
         file_name="interactive_story.pdf",
         mime="application/pdf"
     )
-
     
 def clean_text(text):
     output = ""
