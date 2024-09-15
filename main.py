@@ -89,6 +89,7 @@ def clean_text(text):
     
 def generate_image(story_text):
     response = requests.post(st.secrets["lemmebuild_url"], json={'story': story_text })
+    print(st.secrets["lemmebuild_url"])
     print(response)
     print(response.status_code)
     print(response.json())
