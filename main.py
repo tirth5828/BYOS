@@ -5,6 +5,8 @@ from fpdf import FPDF
 import requests
 from io import BytesIO
 from PIL import Image
+import base64
+
 
 
 # Initialize OpenAI API key (replace 'your-api-key' with your actual API key)
@@ -97,7 +99,9 @@ def generate_image(story_text):
     except:
         try:
             base64_image = response.json()['taa']
-            image_url = base64_image
+            image_data = base64.b64decode(base64_image)
+            image = Image.open(BytesIO(image_data))
+            image_url = image
         except:
             image_url = None
     st.session_state.images.append(image_url)
